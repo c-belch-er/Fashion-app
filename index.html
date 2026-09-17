@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Ethical Edit — Curate Your Collection</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface-raised: #242424;
+  --border: rgba(255,255,255,0.06);
+  --text: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --accent: #a855f7;
+  --accent-light: #c084fc;
+  --success: #34d399;
+  --danger: #f87171;
+  --warning: #fbbf24;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.screen { display:none; flex-direction:column; height:100%; }
+.screen.active { display:flex; }
+
+/* ===== HOME ===== */
+.home-content {
+  flex:1; display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  padding:24px; gap:32px;
+}
+.brand-home { text-align:center; }
+.brand-home .mark {
+  width:48px; height:48px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-light));
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:22px; margin:0 auto 16px;
+}
+.brand-home h1 { font-size:28px; font-weight:800; letter-spacing:-0.5px; }
+.brand-home p { color:var(--text-secondary); font-size:14px; margin-top:6px; font-weight:500; }
+
+.season-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  width:100%; max-width:360px;
+}
+.season-card {
+  aspect-ratio:1; border-radius:20px; overflow:hidden;
+  position:relative; cursor:pointer; border:1px solid var(--border);
+  transition:transform 0.2s, box-shadow 0.2s;
+}
+.season-card:hover { transform:scale(1.02); }
+.season-card:active { transform:scale(0.98); }
+.season-card img { width:100%; height:100%; object-fit:cover; opacity:0.7; transition:opacity 0.3s; }
+.season-card:hover img { opacity:0.9; }
+.season-label {
+  position:absolute; bottom:0; left:0; right:0; padding:16px;
+  background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  font-size:16px; font-weight:700;
+}
+.season-card.all-seasons { grid-column:span 2; aspect-ratio:2.5; }
+.season-card.all-seasons img { opacity:0.4; }
+
+/* ===== CATEGORY ===== */
+.cat-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  width:100%; max-width:360px; padding:0 24px;
+}
+.cat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:28px 20px; text-align:center;
+  cursor:pointer; transition:all 0.2s;
+}
+.cat-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.cat-card:active { transform:scale(0.97); }
+.cat-card .icon { font-size:32px; margin-bottom:10px; display:block; }
+.cat-card .name { font-size:15px; font-weight:700; }
+
+/* ===== HEADER ===== */
+.header {
+  padding:14px 20px; background:rgba(15,15,15,0.95);
+  backdrop-filter:blur(20px); border-bottom:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+  z-index:100; flex-shrink:0;
+}
+.header-left { display:flex; align-items:center; gap:10px; }
+.header-mark {
+  width:28px; height:28px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-light));
+  border-radius:8px; display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700;
+}
+.header-title { font-size:15px; font-weight:700; }
+.header-sub { font-size:11px; color:var(--text-muted); font-weight:500; }
+.header-actions { display:flex; gap:8px; align-items:center; }
+.header-btn {
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text-secondary); padding:6px 12px;
+  border-radius:20px; font-size:12px; font-weight:600;
+  cursor:pointer; transition:all 0.2s;
+}
+.header-btn:hover { border-color:var(--accent); color:var(--text); }
+.header-btn.primary {
+  background:linear-gradient(135deg,var(--accent),var(--accent-light));
+  color:#fff; border:none;
+}
+.header-btn .badge {
+  background:var(--success); color:var(--bg);
+  font-size:10px; font-weight:800;
+  padding:1px 5px; border-radius:10px; margin-left:4px;
+}
+
+/* ===== GRID ===== */
+.grid-container { flex:1; overflow-y:auto; padding:16px; -webkit-overflow-scrolling:touch; }
+.grid-masonry { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.grid-item {
+  background:var(--surface); border-radius:16px; overflow:hidden;
+  cursor:pointer; border:1px solid var(--border);
+  transition:transform 0.2s, border-color 0.2s;
+}
+.grid-item:hover { transform:scale(1.02); border-color:var(--accent); }
+.grid-item:active { transform:scale(0.97); }
+.grid-item img { width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
+.grid-item-info { padding:10px; }
+.grid-item-name {
+  font-size:11px; font-weight:600;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px;
+}
+.grid-item-meta { display:flex; justify-content:space-between; align-items:center; }
+.grid-item-price { font-size:12px; font-weight:700; color:var(--accent-light); }
+.grid-item-tag {
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.5px; padding:2px 6px; border-radius:10px;
+}
+.tag-ft { background:rgba(52,211,153,0.15); color:var(--success); }
+.tag-lw { background:rgba(96,165,250,0.15); color:#60a5fa; }
+.tag-art { background:rgba(251,191,36,0.15); color:var(--warning); }
+.tag-veg { background:rgba(167,139,250,0.15); color:#a78bfa; }
+.tag-uk { background:rgba(248,113,113,0.15); color:var(--danger); }
+.tag-trans { background:rgba(45,212,191,0.15); color:#2dd4bf; }
+
+/* ===== EXPANDED ===== */
+.expanded-view {
+  flex:1; display:flex; flex-direction:column; position:relative; overflow:hidden;
+}
+.expanded-image-wrap {
+  flex:1; position:relative; overflow:hidden; background:var(--surface);
+}
+.expanded-image {
+  width:100%; height:100%; object-fit:cover;
+  position:absolute; top:0; left:0;
+  opacity:0; transition:opacity 0.3s;
+}
+.expanded-image.active { opacity:1; }
+.image-dots {
+  position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+  display:flex; gap:6px; z-index:10;
+}
+.image-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(255,255,255,0.3); transition:all 0.2s;
+}
+.image-dot.active { background:#fff; width:18px; border-radius:3px; }
+.image-counter {
+  position:absolute; top:16px; right:16px;
+  background:rgba(0,0,0,0.5); backdrop-filter:blur(10px);
+  padding:4px 10px; border-radius:20px;
+  font-size:12px; font-weight:600; z-index:10;
+}
+
+.expanded-details {
+  background:var(--surface); border-top:1px solid var(--border);
+  padding:20px; max-height:45vh; overflow-y:auto;
+}
+.expanded-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.expanded-title { font-size:20px; font-weight:700; margin-bottom:6px; letter-spacing:-0.3px; }
+.expanded-meta { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.expanded-price { font-size:22px; font-weight:800; color:var(--accent-light); }
+.expanded-retail { font-size:13px; color:var(--text-muted); text-decoration:line-through; }
+.expanded-supplier {
+  font-size:13px; color:var(--text-secondary); font-weight:500;
+  display:flex; align-items:center; gap:6px; margin-bottom:8px;
+}
+.expanded-margin { font-size:12px; color:var(--success); font-weight:600; margin-bottom:12px; }
+.expanded-desc { font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:16px; }
+
+/* Expert */
+.expert-section { background:var(--bg); border-radius:12px; padding:14px; margin-bottom:12px; }
+.expert-label {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:1px; color:var(--text-muted); margin-bottom:8px;
+}
+.expert-row {
+  display:flex; justify-content:space-between;
+  padding:6px 0; border-bottom:1px solid var(--border); font-size:12px;
+}
+.expert-row:last-child { border:none; }
+.expert-key { color:var(--text-secondary); }
+.expert-val { color:var(--text); font-weight:600; text-align:right; }
+.expert-cert {
+  display:inline-block; padding:3px 8px; border-radius:8px;
+  font-size:10px; font-weight:700; margin:2px;
+}
+.cert-gots { background:rgba(52,211,153,0.12); color:var(--success); }
+.cert-wfto { background:rgba(96,165,250,0.12); color:#60a5fa; }
+.cert-bcorp { background:rgba(251,191,36,0.12); color:var(--warning); }
+.cert-oeko { background:rgba(167,139,250,0.12); color:#a78bfa; }
+.cert-lwf { background:rgba(45,212,191,0.12); color:#2dd4bf; }
+.cert-peta { background:rgba(248,113,113,0.12); color:var(--danger); }
+
+.complete-look { margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+.complete-look-title {
+  font-size:12px; font-weight:700; color:var(--text-muted);
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;
+}
+.complete-look-items { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
+.complete-item { flex-shrink:0; width:70px; text-align:center; cursor:pointer; }
+.complete-item img { width:70px; height:90px; object-fit:cover; border-radius:10px; border:1px solid var(--border); }
+.complete-item-name { font-size:9px; font-weight:600; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.stamp {
+  position:absolute; top:60px; padding:10px 20px; border:3px solid;
+  border-radius:12px; font-size:22px; font-weight:900;
+  text-transform:uppercase; letter-spacing:3px;
+  opacity:0; transition:opacity 0.15s; z-index:20;
+  pointer-events:none; backdrop-filter:blur(4px);
+}
+.stamp-yes { right:25px; color:var(--success); border-color:var(--success); transform:rotate(12deg); background:rgba(52,211,153,0.1); }
+.stamp-no { left:25px; color:var(--danger); border-color:var(--danger); transform:rotate(-12deg); background:rgba(248,113,113,0.1); }
+
+.swipe-hint {
+  position:absolute; bottom:100px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(10px);
+  color:var(--text-secondary); padding:8px 16px;
+  border-radius:20px; font-size:12px; pointer-events:none;
+  border:1px solid var(--border); z-index:15;
+}
+
+/* ===== CONTROLS ===== */
+.controls {
+  display:flex; justify-content:center; gap:24px;
+  padding:16px 20px; background:rgba(15,15,15,0.95);
+  backdrop-filter:blur(20px); border-top:1px solid var(--border); flex-shrink:0;
+}
+.btn {
+  width:56px; height:56px; border-radius:50%; border:none;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; cursor:pointer;
+  transition:all 0.2s cubic-bezier(0.25,0.46,0.45,0.94);
+  box-shadow:0 8px 30px rgba(0,0,0,0.3); color:#fff;
+}
+.btn:hover { transform:scale(1.08); }
+.btn:active { transform:scale(0.92); }
+.btn-no { background:rgba(248,113,113,0.15); border:1px solid rgba(248,113,113,0.3); }
+.btn-yes { background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); }
+.btn-back { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); font-size:18px; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(8px); z-index:1000;
+  display:none; justify-content:center; align-items:flex-end;
+}
+.modal-overlay.active { display:flex; }
+.modal-sheet {
+  background:var(--surface); border-radius:24px 24px 0 0;
+  width:100%; max-width:420px; padding:24px;
+  animation:slideUp 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+@keyframes slideUp {
+  from { transform:translateY(100%); }
+  to { transform:translateY(0); }
+}
+.modal-title { font-size:18px; font-weight:700; margin-bottom:20px; }
+.season-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.season-opt {
+  background:var(--bg); border:2px solid var(--border);
+  border-radius:14px; padding:16px; text-align:center;
+  cursor:pointer; transition:all 0.2s; font-size:14px; font-weight:600;
+}
+.season-opt:hover { border-color:var(--accent); }
+.season-opt.selected { border-color:var(--accent); background:rgba(168,85,247,0.1); }
+.season-opt .check { display:block; font-size:20px; margin-bottom:4px; opacity:0; transition:opacity 0.2s; }
+.season-opt.selected .check { opacity:1; }
+.select-all-btn {
+  width:100%; background:var(--surface-raised); border:1px solid var(--border);
+  color:var(--text-secondary); padding:12px; border-radius:12px;
+  font-weight:600; cursor:pointer; margin-bottom:12px; font-size:13px;
+}
+.select-all-btn:hover { border-color:var(--accent); color:var(--text); }
+.confirm-btn {
+  width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-light));
+  color:#fff; border:none; padding:14px; border-radius:14px;
+  font-weight:700; cursor:pointer; font-size:15px;
+}
+
+/* ===== SHORTLIST ===== */
+.shortlist-filters {
+  display:flex; gap:8px; padding:12px 16px;
+  border-bottom:1px solid var(--border); overflow-x:auto; flex-shrink:0;
+}
+.filter-chip {
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text-secondary); padding:6px 14px;
+  border-radius:20px; font-size:12px; font-weight:600;
+  cursor:pointer; white-space:nowrap; transition:all 0.2s;
+}
+.filter-chip:hover, .filter-chip.active {
+  border-color:var(--accent); color:var(--text); background:rgba(168,85,247,0.1);
+}
+.shortlist-grid {
+  flex:1; overflow-y:auto; padding:16px;
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+}
+.shortlist-item {
+  background:var(--surface); border-radius:14px; overflow:hidden;
+  border:1px solid var(--border); position:relative;
+}
+.shortlist-item img { width:100%; aspect-ratio:3/4; object-fit:cover; }
+.shortlist-item-info { padding:8px; }
+.shortlist-item-name { font-size:10px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.shortlist-item-seasons { font-size:9px; color:var(--text-muted); margin-top:2px; }
+.shortlist-remove {
+  position:absolute; top:6px; right:6px;
+  width:24px; height:24px; border-radius:50%;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+  border:none; color:var(--danger); font-size:14px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.shortlist-summary {
+  padding:16px; border-top:1px solid var(--border); background:var(--surface);
+}
+.summary-row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.summary-row.total { border-top:1px solid var(--border); padding-top:8px; margin-top:8px; font-weight:700; }
+
+/* ===== EXPORT ===== */
+.export-area { padding:16px; border-top:1px solid var(--border); background:var(--bg); }
+.export-json {
+  width:100%; height:100px; background:var(--bg); border:1px solid var(--border);
+  border-radius:10px; padding:10px; font-family:monospace; font-size:11px;
+  color:var(--text-secondary); resize:none; margin-bottom:10px;
+}
+.copy-btn {
+  width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-light));
+  color:#fff; border:none; padding:12px; border-radius:12px;
+  font-weight:700; cursor:pointer;
+}
+
+/* ===== BUILDER ===== */
+.builder-canvas {
+  flex:1; background:var(--bg); position:relative;
+  overflow:hidden; display:flex; align-items:center; justify-content:center;
+}
+.builder-canvas-inner {
+  width:90%; max-width:400px; aspect-ratio:3/4;
+  background:var(--surface); border-radius:20px;
+  border:2px dashed var(--border); position:relative; overflow:hidden;
+}
+.builder-canvas-inner.has-items { border-style:solid; border-color:var(--border); }
+.canvas-placeholder {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  color:var(--text-muted); font-size:14px; pointer-events:none;
+}
+.canvas-item {
+  position:absolute; cursor:grab; border-radius:12px;
+  overflow:hidden; border:2px solid transparent;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4); transition:border-color 0.2s;
+}
+.canvas-item:hover { border-color:var(--accent); }
+.canvas-item img { width:100%; height:100%; object-fit:cover; }
+.canvas-item .remove-canvas {
+  position:absolute; top:-8px; right:-8px;
+  width:22px; height:22px; border-radius:50%;
+  background:var(--danger); color:#fff; border:none;
+  font-size:12px; cursor:pointer; display:none;
+  align-items:center; justify-content:center;
+}
+.canvas-item:hover .remove-canvas { display:flex; }
+
+.missing-pieces { padding:10px 16px; background:var(--bg); border-top:1px solid var(--border); }
+.missing-title {
+  font-size:11px; font-weight:700; color:var(--text-muted);
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;
+}
+.missing-list { display:flex; gap:8px; overflow-x:auto; }
+.missing-chip {
+  background:var(--surface-raised); border:1px solid var(--border);
+  color:var(--text-secondary); padding:6px 12px; border-radius:20px;
+  font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer;
+  transition:all 0.2s;
+}
+.missing-chip:hover { border-color:var(--accent); color:var(--text); }
+
+.builder-sidebar {
+  height:180px; background:var(--surface); border-top:1px solid var(--border);
+  display:flex; flex-direction:column;
+}
+.builder-sidebar-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 16px; border-bottom:1px solid var(--border);
+}
+.builder-sidebar-title { font-size:13px; font-weight:700; }
+.builder-sidebar-items {
+  flex:1; overflow-x:auto; display:flex; gap:10px;
+  padding:12px 16px; align-items:center;
+}
+.builder-item { flex-shrink:0; width:80px; text-align:center; cursor:grab; }
+.builder-item img { width:80px; height:100px; object-fit:cover; border-radius:12px; border:1px solid var(--border); }
+.builder-item-name { font-size:9px; font-weight:600; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.outfit-actions {
+  display:flex; gap:10px; padding:12px 16px;
+  background:var(--surface); border-top:1px solid var(--border);
+}
+.outfit-actions button {
+  flex:1; padding:12px; border-radius:12px; border:none;
+  font-weight:700; font-size:13px; cursor:pointer; transition:all 0.2s;
+}
+.save-outfit-btn { background:linear-gradient(135deg,var(--accent),var(--accent-light)); color:#fff; }
+.clear-canvas-btn { background:var(--bg); color:var(--text-secondary); border:1px solid var(--border); }
+
+/* ===== LOOKBOOK ===== */
+.lookbook-grid {
+  flex:1; overflow-y:auto; padding:16px;
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+.lookbook-item {
+  background:var(--surface); border-radius:16px;
+  overflow:hidden; border:1px solid var(--border);
+}
+.lookbook-item img { width:100%; aspect-ratio:3/4; object-fit:cover; }
+.lookbook-item-info { padding:10px; }
+.lookbook-item-name { font-size:12px; font-weight:700; }
+.lookbook-item-count { font-size:11px; color:var(--text-muted); }
+
+/* ===== EMPTY ===== */
+.empty-state {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:40px; text-align:center;
+}
+.empty-state .icon { font-size:48px; margin-bottom:16px; }
+.empty-state h2 { font-size:22px; font-weight:700; margin-bottom:8px; }
+.empty-state p { color:var(--text-secondary); font-size:14px; margin-bottom:4px; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.fade-in { animation:fadeIn 0.4s ease; }
+
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:var(--text-muted); }
+</style>
+</head>
+<body>
+<!-- ===== HOME ===== -->
+<div class="screen active" id="screen-home">
+  <div class="home-content">
+    <div class="brand-home">
+      <div class="mark">&#10022;</div>
+      <h1>Ethical Edit</h1>
+      <p>Curated dropshipping for the conscious wardrobe</p>
+    </div>
+    <div class="season-grid">
+      <div class="season-card" onclick="pickSeason('spring')">
+        <img src="https://images.unsplash.com/photo-1490750967868-88aa4f44d07e?w=400&h=400&fit=crop" alt="Spring">
+        <div class="season-label">Spring</div>
+      </div>
+      <div class="season-card" onclick="pickSeason('summer')">
+        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop" alt="Summer">
+        <div class="season-label">Summer</div>
+      </div>
+      <div class="season-card" onclick="pickSeason('autumn')">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" alt="Autumn">
+        <div class="season-label">Autumn</div>
+      </div>
+      <div class="season-card" onclick="pickSeason('winter')">
+        <img src="https://images.unsplash.com/photo-1483664852095-d6cc6870705d?w=400&h=400&fit=crop" alt="Winter">
+        <div class="season-label">Winter</div>
+      </div>
+      <div class="season-card all-seasons" onclick="pickSeason('all')">
+        <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&h=300&fit=crop" alt="All">
+        <div class="season-label">All Seasons</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY ===== -->
+<div class="screen" id="screen-category">
+  <div class="home-content">
+    <div class="brand-home">
+      <div class="mark">&#10022;</div>
+      <h1>Choose Category</h1>
+      <p id="cat-season-label">Browse by type</p>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-card" onclick="pickCategory('clothing')">
+        <span class="icon">&#128084;</span>
+        <span class="name">Clothing</span>
+      </div>
+      <div class="cat-card" onclick="pickCategory('shoes')">
+        <span class="icon">&#128095;</span>
+        <span class="name">Shoes</span>
+      </div>
+      <div class="cat-card" onclick="pickCategory('jewellery')">
+        <span class="icon">&#128142;</span>
+        <span class="name">Jewellery</span>
+      </div>
+      <div class="cat-card" onclick="pickCategory('accessories')">
+        <span class="icon">&#128092;</span>
+        <span class="name">Accessories</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GRID ===== -->
+<div class="screen" id="screen-grid">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-mark">&#10022;</div>
+      <div>
+        <div class="header-title" id="grid-title">Clothing</div>
+        <div class="header-sub" id="grid-sub">Spring Collection</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="goHome()">Change Season</button>
+      <button class="header-btn" onclick="goCategory()">Change Category</button>
+      <button class="header-btn primary" onclick="showShortlist()">
+        Shortlist <span class="badge" id="shortlist-badge">0</span>
+      </button>
+    </div>
+  </div>
+  <div class="grid-container">
+    <div class="grid-masonry" id="grid-masonry"></div>
+  </div>
+</div>
+
+<!-- ===== EXPANDED ===== -->
+<div class="screen" id="screen-expanded">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-mark">&#10022;</div>
+      <div>
+        <div class="header-title">Viewing Item</div>
+        <div class="header-sub" id="expanded-counter">1 of 24</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="backToGrid()">Back to Grid</button>
+    </div>
+  </div>
+  <div class="expanded-view" id="expanded-view">
+    <div class="expanded-image-wrap" id="image-wrap">
+      <div class="image-counter" id="image-counter">1 / 3</div>
+      <div class="image-dots" id="image-dots"></div>
+      <div class="stamp stamp-yes" id="stamp-yes">ADD</div>
+      <div class="stamp stamp-no" id="stamp-no">SKIP</div>
+      <div class="swipe-hint" id="swipe-hint">Tap image for next photo &#183; Swipe to decide</div>
+    </div>
+    <div class="expanded-details" id="expanded-details"></div>
+  </div>
+  <div class="controls">
+    <button class="btn btn-back" onclick="backToGrid()" title="Back">&#8595;</button>
+    <button class="btn btn-no" onclick="swipeItem('no')" title="Skip">&#10007;</button>
+    <button class="btn btn-yes" onclick="swipeItem('yes')" title="Add">&#10003;</button>
+  </div>
+</div>
+
+<!-- ===== SEASON MODAL ===== -->
+<div class="modal-overlay" id="season-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">Which seasons does this piece work for?</div>
+    <div class="season-options" id="season-options">
+      <div class="season-opt" data-season="spring" onclick="toggleSeason('spring')">
+        <span class="check">&#10003;</span> Spring
+      </div>
+      <div class="season-opt" data-season="summer" onclick="toggleSeason('summer')">
+        <span class="check">&#10003;</span> Summer
+      </div>
+      <div class="season-opt" data-season="autumn" onclick="toggleSeason('autumn')">
+        <span class="check">&#10003;</span> Autumn
+      </div>
+      <div class="season-opt" data-season="winter" onclick="toggleSeason('winter')">
+        <span class="check">&#10003;</span> Winter
+      </div>
+    </div>
+    <button class="select-all-btn" onclick="selectAllSeasons()">Select All Seasons</button>
+    <button class="confirm-btn" onclick="confirmSeasons()">Confirm &amp; Continue</button>
+  </div>
+</div>
+
+<!-- ===== SHORTLIST ===== -->
+<div class="screen" id="screen-shortlist">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-mark">&#10022;</div>
+      <div>
+        <div class="header-title">Your Shortlist</div>
+        <div class="header-sub" id="shortlist-sub">Curated items</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="goHome()">Browse More</button>
+      <button class="header-btn primary" onclick="showOutfitBuilder()">Build Outfits</button>
+    </div>
+  </div>
+  <div class="shortlist-filters" id="shortlist-filters">
+    <div class="filter-chip active" onclick="filterShortlist('all')">All</div>
+    <div class="filter-chip" onclick="filterShortlist('clothing')">Clothing</div>
+    <div class="filter-chip" onclick="filterShortlist('shoes')">Shoes</div>
+    <div class="filter-chip" onclick="filterShortlist('jewellery')">Jewellery</div>
+    <div class="filter-chip" onclick="filterShortlist('accessories')">Accessories</div>
+    <div class="filter-chip" onclick="filterShortlist('spring')">Spring</div>
+    <div class="filter-chip" onclick="filterShortlist('summer')">Summer</div>
+    <div class="filter-chip" onclick="filterShortlist('autumn')">Autumn</div>
+    <div class="filter-chip" onclick="filterShortlist('winter')">Winter</div>
+  </div>
+  <div class="shortlist-grid" id="shortlist-grid"></div>
+  <div class="shortlist-summary" id="shortlist-summary"></div>
+  <div class="export-area">
+    <textarea class="export-json" id="export-json" readonly></textarea>
+    <button class="copy-btn" onclick="copyExport()">&#128203; Copy Export JSON</button>
+  </div>
+</div>
+
+<!-- ===== BUILDER ===== -->
+<div class="screen" id="screen-builder">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-mark">&#10022;</div>
+      <div>
+        <div class="header-title">Outfit Builder</div>
+        <div class="header-sub" id="builder-season-label">Spring</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="showShortlist()">Back to Shortlist</button>
+      <button class="header-btn" onclick="showLookbook()">View Lookbook</button>
+    </div>
+  </div>
+  <div class="builder-canvas" id="builder-canvas">
+    <div class="builder-canvas-inner" id="canvas-inner">
+      <div class="canvas-placeholder" id="canvas-placeholder">
+        <span style="font-size:32px; margin-bottom:8px;">&#10022;</span>
+        <span>Drag items here to build a look</span>
+      </div>
+    </div>
+  </div>
+  <div class="missing-pieces" id="missing-pieces" style="display:none;">
+    <div class="missing-title">Complete the look</div>
+    <div class="missing-list" id="missing-list"></div>
+  </div>
+  <div class="builder-sidebar">
+    <div class="builder-sidebar-header">
+      <span class="builder-sidebar-title">Your Items</span>
+      <span style="font-size:11px; color:var(--text-muted);" id="builder-item-count">0 items</span>
+    </div>
+    <div class="builder-sidebar-items" id="builder-items"></div>
+  </div>
+  <div class="outfit-actions">
+    <button class="clear-canvas-btn" onclick="clearCanvas()">Clear</button>
+    <button class="save-outfit-btn" onclick="saveOutfit()">Save Outfit</button>
+  </div>
+</div>
+
+<!-- ===== LOOKBOOK ===== -->
+<div class="screen" id="screen-lookbook">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-mark">&#10022;</div>
+      <div>
+        <div class="header-title">Lookbook</div>
+        <div class="header-sub" id="lookbook-sub">Saved outfits</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="showOutfitBuilder()">Build More</button>
+      <button class="header-btn" onclick="showShortlist()">Shortlist</button>
+    </div>
+  </div>
+  <div class="lookbook-grid" id="lookbook-grid"></div>
+</div>
+
+<script>
+
+// ============================================================
+// DATA
+// ============================================================
+const products = [
+  {"id":1,"name":"Organic Cotton Oversized Tee","category":"clothing","subcategory":"tops","price":32,"cost":12.50,"supplier":"EcoThreads EU","location":"🇵🇹 Portugal","images":["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&h=800&fit=crop"],"tags":["fairtrade","livingwage"],"silhouette":"boxy","colourFamily":"neutral","fabricType":"cotton","description":"GOTS certified organic cotton. Made in Portugal under fair labour conditions.","expert":{"composition":"100% GOTS organic cotton","certifications":["GOTS","Fair Trade"],"comparableHouse":"COS","backstory":"Family-run atelier in Porto, operating since 1987. Workers earn 20% above Portuguese minimum wage."},"pairsWith":["structured","fluid","neutral","earth"]},
+  {"id":2,"name":"Recycled Wool Cable Knit","category":"clothing","subcategory":"knitwear","price":68,"cost":26,"supplier":"ReWool Collective","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&h=800&fit=crop"],"tags":["ukmade","transparent"],"silhouette":"boxy","colourFamily":"neutral","fabricType":"wool","description":"British wool, recycled fibres. Knitted in Leicester by living wage workers.","expert":{"composition":"70% British wool, 30% recycled nylon","certifications":["Living Wage Foundation"],"comparableHouse":"Margaret Howell","backstory":"Leicester-based knitwear house, transparent cost breakdown published online. Real Living Wage employer."},"pairsWith":["tailored","structured","neutral","earth"]},
+  {"id":3,"name":"Artisan Block Print Dress","category":"clothing","subcategory":"dresses","price":85,"cost":32,"supplier":"Maya Weavers Co-op","location":"🇮🇳 India","images":["https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&h=800&fit=crop"],"tags":["fairtrade","artisan"],"silhouette":"fluid","colourFamily":"earth","fabricType":"cotton","description":"Hand block-printed by artisan co-operative. WFTO certified. Transparent supply chain.","expert":{"composition":"100% handwoven cotton","certifications":["WFTO","Fair Trade"],"comparableHouse":"Mara Hoffman","backstory":"Women's cooperative in Rajasthan. Each piece takes 3 days from block carving to final stitch."},"pairsWith":["fluid","structured","earth","jewel"]},
+  {"id":4,"name":"Living Wage Denim Jacket","category":"clothing","subcategory":"outerwear","price":95,"cost":38,"supplier":"DenimRevive EU","location":"🇮🇹 Italy","images":["https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=600&h=800&fit=crop"],"tags":["livingwage","transparent"],"silhouette":"structured","colourFamily":"neutral","fabricType":"denim","description":"Made in Tuscany by workers earning above living wage. Full cost breakdown published.","expert":{"composition":"14oz Italian selvedge denim, organic cotton","certifications":["SA8000"],"comparableHouse":"A.P.C.","backstory":"Prato-based factory. Every garment cost itemised online — from cotton farm to finished piece."},"pairsWith":["boxy","tailored","neutral","monochrome"]},
+  {"id":5,"name":"Handloom Linen Shirt","category":"clothing","subcategory":"tops","price":58,"cost":22,"supplier":"Baltic Linen Works","location":"🇱🇹 Lithuania","images":["https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&h=800&fit=crop"],"tags":["fairtrade","artisan"],"silhouette":"structured","colourFamily":"neutral","fabricType":"linen","description":"European flax, handloomed by cooperative in Lithuania. Fair pay guaranteed.","expert":{"composition":"100% European linen","certifications":["Fair Trade"],"comparableHouse":"Barena","backstory":"Artisan cooperative preserving Lithuanian weaving traditions. Each shirt numbered by the weaver."},"pairsWith":["tailored","fluid","neutral","earth"]},
+  {"id":6,"name":"UK-Made Organic Hoodie","category":"clothing","subcategory":"tops","price":62,"cost":24,"supplier":"British Cotton Co.","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?w=600&h=800&fit=crop"],"tags":["ukmade","livingwage"],"silhouette":"boxy","colourFamily":"neutral","fabricType":"cotton","description":"Grown, spun, and sewn in the UK. Real living wage certified factory in Manchester.","expert":{"composition":"100% organic cotton, UK-grown","certifications":["Living Wage Foundation","Soil Association"],"comparableHouse":"Nigel Cabourn","backstory":"Vertical operation — cotton farm in Devon to factory in Manchester. 47 miles total journey."},"pairsWith":["boxy","tailored","neutral","monochrome"]},
+  {"id":7,"name":"Fair Trade Cashmere Scarf","category":"accessories","subcategory":"scarves","price":75,"cost":28,"supplier":"Himalayan Crafts","location":"🇳🇵 Nepal","images":["https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=600&h=800&fit=crop"],"tags":["fairtrade","artisan"],"silhouette":"fluid","colourFamily":"neutral","fabricType":"wool","description":"Hand-woven by women's cooperative in Kathmandu. WFTO + Fair Trade certified.","expert":{"composition":"100% Himalayan cashmere","certifications":["WFTO","Fair Trade"],"comparableHouse":"Begg x Co","backstory":"Women's cooperative founded 1994. Every purchase funds literacy programmes for weavers' children."},"pairsWith":["fluid","structured","neutral","pastel"]},
+  {"id":8,"name":"Vegan Silk Blouse","category":"clothing","subcategory":"tops","price":48,"cost":18,"supplier":"Peace Silk EU","location":"🇩🇪 Germany","images":["https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1598532163257-ae3c6b252f15?w=600&h=800&fit=crop"],"tags":["vegan","transparent"],"silhouette":"fluid","colourFamily":"pastel","fabricType":"silk","description":"Ahimsa (peace) silk — no silkworms harmed. Made in Berlin. Transparent pricing.","expert":{"composition":"100% Ahimsa silk (peace silk)","certifications":["PETA-Approved Vegan"],"comparableHouse":"Vince","backstory":"Berlin atelier specialising in cruelty-free luxury. Full cost transparency — no markup mysteries."},"pairsWith":["fluid","tailored","pastel","neutral"]},
+  {"id":9,"name":"Recycled Ocean Plastic Trainers","category":"shoes","subcategory":"trainers","price":89,"cost":35,"supplier":"SeaThread Footwear","location":"🇳🇱 Netherlands","images":["https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&h=800&fit=crop"],"tags":["transparent","livingwage"],"silhouette":"structured","colourFamily":"neutral","fabricType":"recycled-synthetic","description":"Made from Mediterranean fishing nets. Assembled in Netherlands. Living wage factory.","expert":{"composition":"Upper: 100% recycled ocean plastic. Sole: natural rubber.","certifications":["B-Corp","Living Wage Foundation"],"comparableHouse":"Veja","backstory":"Rotterdam factory powered by wind. Every pair removes 2kg of ocean plastic."},"pairsWith":["boxy","tailored","neutral","monochrome"]},
+  {"id":10,"name":"Artisan Woven Tote","category":"accessories","subcategory":"bags","price":42,"cost":15,"supplier":"Weave & Co","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&h=800&fit=crop"],"tags":["ukmade","artisan"],"silhouette":"structured","colourFamily":"earth","fabricType":"wool","description":"Hand-woven in Cornwall using British wool. Small-batch artisan production.","expert":{"composition":"100% British wool, vegetable-tanned leather handles","certifications":["Crafts Council UK"],"comparableHouse":"Mulberry (heritage)","backstory":"Cornish weaving studio, 5 artisans. Each bag takes 4 days. Numbered edition."},"pairsWith":["structured","fluid","earth","neutral"]},
+  {"id":11,"name":"Transparent Supply Chain Tee","category":"clothing","subcategory":"tops","price":28,"cost":10,"supplier":"OpenWear","location":"🇵🇹 Portugal","images":["https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=600&h=800&fit=crop"],"tags":["transparent","livingwage"],"silhouette":"boxy","colourFamily":"neutral","fabricType":"cotton","description":"Every cost breakdown published online. From cotton farm to your door.","expert":{"composition":"100% organic cotton","certifications":["GOTS","Fair Trade"],"comparableHouse":"Everlane (radical transparency era)","backstory":"Lisbon-based. Website shows exact cost of materials, labour, transport, and margin."},"pairsWith":["boxy","tailored","neutral","monochrome"]},
+  {"id":12,"name":"Fair Trade Alpaca Jumper","category":"clothing","subcategory":"knitwear","price":110,"cost":42,"supplier":"Andean Collective","location":"🇵🇪 Peru","images":["https://images.unsplash.com/photo-1434389677669-e08b4a93e3c8?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&h=800&fit=crop"],"tags":["fairtrade","artisan"],"silhouette":"boxy","colourFamily":"earth","fabricType":"wool","description":"Hand-knitted by Quechua artisans. Fair Trade certified. Direct partnership.","expert":{"composition":"100% baby alpaca","certifications":["Fair Trade","WFTO"],"comparableHouse":"Brunello Cucinelli (ethical equivalent)","backstory":"Direct trade — no middlemen. Artisans set their own prices. Cooperative owns 30% of business."},"pairsWith":["tailored","structured","earth","neutral"]},
+  {"id":13,"name":"Living Wage Workwear Trousers","category":"clothing","subcategory":"bottoms","price":72,"cost":28,"supplier":"Ethical Workwear Co","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600&h=800&fit=crop"],"tags":["ukmade","livingwage"],"silhouette":"tailored","colourFamily":"neutral","fabricType":"cotton","description":"Made in Birmingham. Real Living Wage Foundation accredited employer.","expert":{"composition":"98% organic cotton, 2% elastane","certifications":["Living Wage Foundation"],"comparableHouse":"Carhartt WIP","backstory":"Birmingham factory, 40 years in garment production. All staff on permanent contracts."},"pairsWith":["structured","boxy","tailored","neutral","monochrome"]},
+  {"id":14,"name":"Vegan Leather Crossbody","category":"accessories","subcategory":"bags","price":55,"cost":20,"supplier":"CorkCraft Iberia","location":"🇪🇸 Spain","images":["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=600&h=800&fit=crop"],"tags":["vegan","transparent"],"silhouette":"structured","colourFamily":"earth","fabricType":"cork","description":"Cork leather from Portuguese harvests. PETA-approved vegan. Factory audited.","expert":{"composition":"100% cork leather (Quercus suber)","certifications":["PETA-Approved Vegan","OEKO-TEX"],"comparableHouse":"Stella McCartney","backstory":"Andalusian workshop using cork from managed Portuguese forests. No trees felled."},"pairsWith":["structured","fluid","earth","neutral"]},
+  {"id":15,"name":"Artisan Leather Boots","category":"shoes","subcategory":"boots","price":140,"cost":55,"supplier":"Atelier Marche","location":"🇮🇹 Italy","images":["https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=600&h=800&fit=crop"],"tags":["artisan","transparent"],"silhouette":"structured","colourFamily":"earth","fabricType":"leather","description":"Handcrafted in Marche, Italy. Family-run workshop. Full traceability.","expert":{"composition":"Vegetable-tanned Italian leather, Blake stitched","certifications":["Genuine Italian Leather"],"comparableHouse":"Officine Creative","backstory":"3rd generation family workshop. Each pair signed by the craftsman. 6-month waitlist."},"pairsWith":["tailored","structured","earth","neutral"]},
+  {"id":16,"name":"Recycled Gold Hoop Earrings","category":"jewellery","subcategory":"earrings","price":65,"cost":25,"supplier":"Aurum Renewed","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&h=800&fit=crop"],"tags":["ukmade","transparent"],"silhouette":"structured","colourFamily":"neutral","fabricType":"metal","description":"100% recycled 9ct gold. Made in London's Hatton Garden.","expert":{"composition":"100% recycled 9ct gold","certifications":["Responsible Jewellery Council"],"comparableHouse":"Monica Vinader","backstory":"Hatton Garden workshop using only recycled and Fairtrade gold. Hallmarked in London."},"pairsWith":["structured","fluid","neutral","jewel"]},
+  {"id":17,"name":"Fair Trade Silver Cuff","category":"jewellery","subcategory":"bracelets","price":45,"cost":18,"supplier":"Andean Silverworks","location":"🇵🇪 Peru","images":["https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&h=800&fit=crop"],"tags":["fairtrade","artisan"],"silhouette":"structured","colourFamily":"neutral","fabricType":"metal","description":"Hand-hammered by Quechua silversmiths. Fair Trade certified silver.","expert":{"composition":"95% silver, 5% copper (traditional alloy)","certifications":["Fair Trade","WFTO"],"comparableHouse":"Pamela Love","backstory":"Cusco-based cooperative. Ancient Incan hammering techniques. Each piece unique."},"pairsWith":["structured","fluid","neutral","earth"]},
+  {"id":18,"name":"Organic Cotton Wide-Leg Trousers","category":"clothing","subcategory":"bottoms","price":68,"cost":26,"supplier":"Nordic Basics","location":"🇩🇰 Denmark","images":["https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600&h=800&fit=crop"],"tags":["fairtrade","livingwage"],"silhouette":"fluid","colourFamily":"neutral","fabricType":"cotton","description":"Scandinavian minimalism. GOTS cotton, Copenhagen atelier.","expert":{"composition":"100% GOTS organic cotton","certifications":["GOTS","Fair Trade"],"comparableHouse":"Arket","backstory":"Copenhagen atelier with Danish Design Award. Workers on collective bargaining agreements."},"pairsWith":["fluid","boxy","tailored","neutral","pastel"]},
+  {"id":19,"name":"Handwoven Silk Scarf","category":"accessories","subcategory":"scarves","price":55,"cost":21,"supplier":"Lyon Atelier","location":"🇫🇷 France","images":["https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=600&h=800&fit=crop"],"tags":["artisan","transparent"],"silhouette":"fluid","colourFamily":"jewel","fabricType":"silk","description":"Handwoven in Lyon, silk capital of France. Small atelier production.","expert":{"composition":"100% mulberry silk","certifications":["Entreprise du Patrimoine Vivant"],"comparableHouse":"Hermès (craft heritage)","backstory":"Lyon atelier operating since 1923. 4th generation silk weavers. UNESCO-recognised technique."},"pairsWith":["fluid","structured","jewel","pastel"]},
+  {"id":20,"name":"Recycled Sterling Pendant","category":"jewellery","subcategory":"necklaces","price":38,"cost":14,"supplier":"ReSilver Studio","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&h=800&fit=crop"],"tags":["ukmade","transparent"],"silhouette":"fluid","colourFamily":"neutral","fabricType":"metal","description":"100% recycled sterling silver. Hand-finished in Sheffield.","expert":{"composition":"100% recycled sterling silver","certifications":["Responsible Jewellery Council"],"comparableHouse":"Alex Monroe","backstory":"Sheffield silversmiths using only recycled metal. Zero mining. Traditional British hallmarking."},"pairsWith":["fluid","structured","neutral","pastel"]},
+  {"id":21,"name":"Living Wage Linen Blazer","category":"clothing","subcategory":"outerwear","price":125,"cost":48,"supplier":"Baltic Tailors","location":"🇱🇹 Lithuania","images":["https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&h=800&fit=crop"],"tags":["livingwage","fairtrade"],"silhouette":"structured","colourFamily":"neutral","fabricType":"linen","description":"European linen, tailored in Vilnius. Living wage certified workshop.","expert":{"composition":"100% European linen, horn buttons","certifications":["Living Wage Foundation","Fair Trade"],"comparableHouse":"Barena Venezia","backstory":"Vilnius workshop employing master tailors from Soviet-era factories. Preserving craft, fair pay."},"pairsWith":["tailored","fluid","structured","neutral","earth"]},
+  {"id":22,"name":"Vegan Suede Sandals","category":"shoes","subcategory":"sandals","price":52,"cost":20,"supplier":"Plant-Based Soles","location":"🇵🇹 Portugal","images":["https://images.unsplash.com/photo-1603487742131-4160ec999306?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&h=800&fit=crop"],"tags":["vegan","fairtrade"],"silhouette":"fluid","colourFamily":"earth","fabricType":"recycled-synthetic","description":"Microfibre suede, cork footbed. Made in Portugal under fair conditions.","expert":{"composition":"Upper: recycled microfibre. Footbed: cork. Sole: natural rubber.","certifications":["PETA-Approved Vegan","Fair Trade"],"comparableHouse":"Birkenstock (ethical alternative)","backstory":"Porto workshop using innovative plant-based materials. Workers earn above Portuguese minimum wage."},"pairsWith":["fluid","boxy","tailored","earth","neutral"]},
+  {"id":23,"name":"Artisan Ceramic Bead Necklace","category":"jewellery","subcategory":"necklaces","price":42,"cost":16,"supplier":"Terra Studio","location":"🇪🇸 Spain","images":["https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&h=800&fit=crop"],"tags":["artisan","transparent"],"silhouette":"fluid","colourFamily":"earth","fabricType":"ceramic","description":"Hand-formed ceramic beads, glazed in Barcelona. Small studio production.","expert":{"composition":"Stoneware clay, lead-free glaze, cotton cord","certifications":["Artisan Guild Spain"],"comparableHouse":"Dinosaur Designs","backstory":"Barcelona ceramic studio, 2 artisans. Each bead hand-rolled and fired twice. No two alike."},"pairsWith":["fluid","structured","earth","jewel"]},
+  {"id":24,"name":"Recycled Cashmere Beanie","category":"accessories","subcategory":"hats","price":35,"cost":13,"supplier":"ReCashmere UK","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=800&fit=crop"],"tags":["ukmade","transparent"],"silhouette":"boxy","colourFamily":"neutral","fabricType":"wool","description":"Post-consumer cashmere, respun in Yorkshire. Zero dye process.","expert":{"composition":"100% recycled cashmere","certifications":["Living Wage Foundation"],"comparableHouse":"Johnstons of Elgin","backstory":"Yorkshire mill using post-consumer cashmere garments. Natural colours only — no chemical dyes."},"pairsWith":["boxy","structured","tailored","neutral","monochrome"]},
+  {"id":25,"name":"Fair Trade Embroidered Blouse","category":"clothing","subcategory":"tops","price":78,"cost":30,"supplier":"Oaxaca Textiles","location":"🇲🇽 Mexico","images":["https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1598532163257-ae3c6b252f15?w=600&h=800&fit=crop"],"tags":["fairtrade","artisan"],"silhouette":"fluid","colourFamily":"jewel","fabricType":"cotton","description":"Hand-embroidered by Zapotec artisans. Fair Trade certified cotton.","expert":{"composition":"100% organic cotton, natural dyes","certifications":["Fair Trade","WFTO"],"comparableHouse":"Mara Hoffman","backstory":"Zapotec women's cooperative in Oaxaca. Traditional embroidery techniques passed down 15 generations."},"pairsWith":["fluid","structured","jewel","earth"]},
+  {"id":26,"name":"Transparent Wool Overcoat","category":"clothing","subcategory":"outerwear","price":195,"cost":75,"supplier":"Nordic Wool Co","location":"🇳🇴 Norway","images":["https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=600&h=800&fit=crop"],"tags":["transparent","livingwage"],"silhouette":"structured","colourFamily":"neutral","fabricType":"wool","description":"Norwegian wool, fully traceable. Bergen factory, living wage.","expert":{"composition":"100% Norwegian wool, corozo buttons","certifications":["Living Wage Foundation","Transparent"],"comparableHouse":"Acne Studios","backstory":"Bergen factory with open-door policy. Full supply chain mapped and published. Workers own 20% equity."},"pairsWith":["tailored","structured","neutral","monochrome"]},
+  {"id":27,"name":"Vegan Cork Belt","category":"accessories","subcategory":"belts","price":32,"cost":12,"supplier":"CorkCraft Iberia","location":"🇪🇸 Spain","images":["https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=800&fit=crop"],"tags":["vegan","transparent"],"silhouette":"structured","colourFamily":"earth","fabricType":"cork","description":"Portuguese cork, hand-finished in Andalusia. PETA-approved.","expert":{"composition":"100% cork leather, recycled metal buckle","certifications":["PETA-Approved Vegan"],"comparableHouse":"Stella McCartney","backstory":"Same workshop as the crossbody bags. Buckles made from recycled industrial metal."},"pairsWith":["tailored","structured","earth","neutral"]},
+  {"id":28,"name":"Living Wage Silk Midi Skirt","category":"clothing","subcategory":"bottoms","price":88,"cost":34,"supplier":"Peace Silk EU","location":"🇩🇪 Germany","images":["https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&h=800&fit=crop"],"tags":["livingwage","vegan"],"silhouette":"fluid","colourFamily":"pastel","fabricType":"silk","description":"Ahimsa silk, bias-cut. Berlin atelier, living wage.","expert":{"composition":"100% Ahimsa silk","certifications":["PETA-Approved Vegan","Living Wage Foundation"],"comparableHouse":"Vince","backstory":"Berlin atelier specialising in cruelty-free luxury. Bias-cut technique requires 20% more fabric but drapes better."},"pairsWith":["fluid","tailored","pastel","neutral"]},
+  {"id":29,"name":"Recycled Sterling Ring Set","category":"jewellery","subcategory":"rings","price":48,"cost":18,"supplier":"ReSilver Studio","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&h=800&fit=crop"],"tags":["ukmade","transparent"],"silhouette":"structured","colourFamily":"neutral","fabricType":"metal","description":"Set of 3 recycled silver rings. Hand-finished in Sheffield.","expert":{"composition":"100% recycled sterling silver","certifications":["Responsible Jewellery Council"],"comparableHouse":"Mejuri","backstory":"Sheffield silversmiths. Each ring cast from recycled electronic waste silver. Hallmarked."},"pairsWith":["structured","fluid","neutral","pastel"]},
+  {"id":30,"name":"Fair Trade Leather Sandals","category":"shoes","subcategory":"sandals","price":68,"cost":26,"supplier":"Marrakech Leatherworks","location":"🇲🇦 Morocco","images":["https://images.unsplash.com/photo-1603487742131-4160ec999306?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&h=800&fit=crop"],"tags":["fairtrade","artisan"],"silhouette":"fluid","colourFamily":"earth","fabricType":"leather","description":"Vegetable-tanned leather, hand-stitched in Marrakech. Fair Trade certified.","expert":{"composition":"100% vegetable-tanned leather, natural rubber sole","certifications":["Fair Trade"],"comparableHouse":"Ancient Greek Sandals","backstory":"Marrakech tannery using traditional methods. Workers paid 40% above Moroccan minimum wage."},"pairsWith":["fluid","boxy","tailored","earth","neutral"]},
+  {"id":31,"name":"UK-Made Organic Socks (3-Pack)","category":"accessories","subcategory":"socks","price":22,"cost":8,"supplier":"British Cotton Co.","location":"🇬🇧 UK","images":["https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=600&h=800&fit=crop"],"tags":["ukmade","livingwage"],"silhouette":"boxy","colourFamily":"neutral","fabricType":"cotton","description":"UK-grown organic cotton, knitted in Leicester. Living wage factory.","expert":{"composition":"100% organic cotton, reinforced heel/toe","certifications":["Living Wage Foundation","Soil Association"],"comparableHouse":"Falke","backstory":"Same vertical operation as the hoodie. Socks knitted on vintage machines for durability."},"pairsWith":["boxy","tailored","structured","neutral","monochrome"]},
+  {"id":32,"name":"Transparent Linen Jumpsuit","category":"clothing","subcategory":"dresses","price":95,"cost":36,"supplier":"OpenWear","location":"🇵🇹 Portugal","images":["https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&h=800&fit=crop"],"tags":["transparent","fairtrade"],"silhouette":"fluid","colourFamily":"neutral","fabricType":"linen","description":"European linen, full cost breakdown. Relaxed utility fit.","expert":{"composition":"100% European linen, corozo buttons","certifications":["GOTS","Fair Trade"],"comparableHouse":"Citizens of Humanity","backstory":"Lisbon atelier. Cost breakdown: materials £12, labour £14, transport £3, margin £7. Published online."},"pairsWith":["fluid","boxy","tailored","neutral","earth"]}
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentSeason = 'all';
+let currentCategory = 'clothing';
+let currentGridIndex = 0;
+let currentImageIndex = 0;
+let saved = [];
+let rejected = [];
+let history = [];
+let tasteProfile = { silhouettes:{}, colours:{}, fabrics:{}, ethicalTags:{}, priceRange:[], seasonVersatility:[] };
+let selectedSeasonsForSave = [];
+let currentBuilderSeason = 'spring';
+let canvasItems = [];
+let outfits = [];
+let startX = 0, currentX = 0, isDragging = false;
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function pickSeason(season) {
+  currentSeason = season;
+  document.getElementById('cat-season-label').textContent = 
+    season === 'all' ? 'Browse all seasons' : season.charAt(0).toUpperCase() + season.slice(1) + ' Collection';
+  showScreen('category');
+}
+
+function pickCategory(cat) {
+  currentCategory = cat;
+  showScreen('grid');
+  renderGrid();
+}
+
+function goHome() { showScreen('home'); }
+function goCategory() { showScreen('category'); }
+
+function backToGrid() {
+  showScreen('grid');
+}
+
+// ============================================================
+// GRID
+// ============================================================
+function getFilteredProducts() {
+  let filtered = products.filter(p => p.category === currentCategory);
+  if (currentSeason !== 'all') {
+    // For un-saved items, we don't know season yet. Show all in category for browsing.
+    // Saved items with season tags are filtered in shortlist.
+  }
+  // Sort by visual similarity: silhouette, colour, fabric
+  filtered.sort((a,b) => {
+    if (a.silhouette !== b.silhouette) return a.silhouette.localeCompare(b.silhouette);
+    if (a.colourFamily !== b.colourFamily) return a.colourFamily.localeCompare(b.colourFamily);
+    return a.fabricType.localeCompare(b.fabricType);
+  });
+  return filtered;
+}
+
+function renderGrid() {
+  const filtered = getFilteredProducts();
+  const grid = document.getElementById('grid-masonry');
+  const title = document.getElementById('grid-title');
+  const sub = document.getElementById('grid-sub');
+
+  title.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
+  sub.textContent = currentSeason === 'all' ? 'All Seasons' : currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1) + ' Collection';
+
+  grid.innerHTML = filtered.map((p, i) => {
+    const tag = p.tags[0];
+    const tagClass = 'tag-' + tag.substring(0,4);
+    const tagLabel = tag === 'fairtrade' ? 'Fair Trade' : tag === 'livingwage' ? 'Living Wage' : tag === 'artisan' ? 'Artisan' : tag === 'vegan' ? 'Vegan' : tag === 'ukmade' ? 'UK Made' : 'Transparent';
+    return `
+      <div class="grid-item fade-in" onclick="openItem(${i})" style="animation-delay:${i*0.03}s">
+        <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
+        <div class="grid-item-info">
+          <div class="grid-item-name">${p.name}</div>
+          <div class="grid-item-meta">
+            <span class="grid-item-price">£${p.price}</span>
+            <span class="grid-item-tag ${tagClass}">${tagLabel}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// EXPANDED VIEW
+// ============================================================
+function openItem(gridIndex) {
+  currentGridIndex = gridIndex;
+  currentImageIndex = 0;
+  showScreen('expanded');
+  renderExpanded();
+
+  setTimeout(() => {
+    const hint = document.getElementById('swipe-hint');
+    if (hint) hint.style.opacity = '0';
+  }, 4000);
+}
+
+function renderExpanded() {
+  const filtered = getFilteredProducts();
+  const p = filtered[currentGridIndex];
+  if (!p) { backToGrid(); return; }
+
+  document.getElementById('expanded-counter').textContent = `${currentGridIndex + 1} of ${filtered.length}`;
+
+  // Images
+  const wrap = document.getElementById('image-wrap');
+  // Remove old images except dots/counter/stamps/hint
+  const oldImgs = wrap.querySelectorAll('.expanded-image');
+  oldImgs.forEach(img => img.remove());
+
+  p.images.forEach((src, i) => {
+    const img = document.createElement('img');
+    img.className = 'expanded-image' + (i === 0 ? ' active' : '');
+    img.src = src;
+    img.alt = p.name;
+    img.style.zIndex = 1;
+    wrap.insertBefore(img, wrap.firstChild);
+  });
+
+  // Dots
+  const dots = document.getElementById('image-dots');
+  dots.innerHTML = p.images.map((_, i) => 
+    `<div class="image-dot ${i === 0 ? 'active' : ''}" onclick="setImage(${i})"></div>`
+  ).join('');
+
+  // Counter
+  document.getElementById('image-counter').textContent = `1 / ${p.images.length}`;
+
+  // Tap to cycle
+  wrap.onclick = (e) => {
+    if (e.target.closest('.image-dots') || e.target.closest('.image-counter')) return;
+    nextImage();
+  };
+
+  // Details
+  const margin = ((p.price - p.cost) / p.price * 100).toFixed(0);
+  const profit = (p.price - p.cost).toFixed(2);
+
+  const tagLabels = { fairtrade:'Fair Trade', livingwage:'Living Wage', artisan:'Artisan Made', vegan:'Vegan', ukmade:'UK Made', transparent:'Transparent' };
+  const tagClasses = { fairtrade:'tag-ft', livingwage:'tag-lw', artisan:'tag-art', vegan:'tag-veg', ukmade:'tag-uk', transparent:'tag-trans' };
+
+  const tagsHtml = p.tags.map(t => `<span class="grid-item-tag ${tagClasses[t]}">${tagLabels[t]}</span>`).join('');
+
+  // Complete the look - find saved items that pair well
+  const savedPairs = saved.filter(s => s.id !== p.id && s.pairsWith.some(pt => p.pairsWith.includes(pt)));
+  const completeLookHtml = savedPairs.length > 0 ? `
+    <div class="complete-look">
+      <div class="complete-look-title">Complete the look</div>
+      <div class="complete-look-items">
+        ${savedPairs.slice(0,5).map(s => `
+          <div class="complete-item" onclick="openItemById(${s.id})">
+            <img src="${s.images[0]}" alt="${s.name}">
+            <div class="complete-item-name">${s.name}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  // Expert mode
+  const certClasses = { GOTS:'cert-gots', 'Fair Trade':'cert-wfto', WFTO:'cert-wfto', 'Living Wage Foundation':'cert-lwf', 'B-Corp':'cert-bcorp', 'PETA-Approved Vegan':'cert-peta', 'OEKO-TEX':'cert-oeko', SA8000:'cert-gots', 'Responsible Jewellery Council':'cert-wfto', 'Entreprise du Patrimoine Vivant':'cert-art', 'Crafts Council UK':'cert-art', 'Soil Association':'cert-gots', 'Transparent':'cert-trans' };
+  const certsHtml = p.expert.certifications.map(c => `<span class="expert-cert ${certClasses[c] || 'cert-gots'}">${c}</span>`).join('');
+
+  document.getElementById('expanded-details').innerHTML = `
+    <div class="expanded-tags">${tagsHtml}</div>
+    <div class="expanded-title">${p.name}</div>
+    <div class="expanded-meta">
+      <span class="expanded-price">£${p.price.toFixed(2)}</span>
+      <span class="expanded-retail">RRP £${(p.price * 1.4).toFixed(0)}</span>
+    </div>
+    <div class="expanded-supplier">
+      <span>${p.location.split(' ')[0]}</span> ${p.supplier} · ${p.location.replace(/^[^\s]+\s/, '')}
+    </div>
+    <div class="expanded-margin">💰 Margin: ${margin}% (£${profit})</div>
+    <div class="expanded-desc">${p.description}</div>
+
+    <div class="expert-section">
+      <div class="expert-label">Expert Details</div>
+      <div class="expert-row"><span class="expert-key">Composition</span><span class="expert-val">${p.expert.composition}</span></div>
+      <div class="expert-row"><span class="expert-key">Certifications</span><span class="expert-val">${certsHtml}</span></div>
+      <div class="expert-row"><span class="expert-key">Comparable</span><span class="expert-val">${p.expert.comparableHouse}</span></div>
+      <div class="expert-row"><span class="expert-key">Backstory</span><span class="expert-val" style="max-width:60%; line-height:1.5;">${p.expert.backstory}</span></div>
+    </div>
+
+    ${completeLookHtml}
+  `;
+
+  // Swipe events
+  attachSwipeEvents();
+}
+
+function nextImage() {
+  const filtered = getFilteredProducts();
+  const p = filtered[currentGridIndex];
+  if (!p) return;
+  currentImageIndex = (currentImageIndex + 1) % p.images.length;
+  setImage(currentImageIndex);
+}
+
+function setImage(idx) {
+  const imgs = document.querySelectorAll('.expanded-image');
+  const dots = document.querySelectorAll('.image-dot');
+  const filtered = getFilteredProducts();
+  const p = filtered[currentGridIndex];
+  if (!p) return;
+
+  imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === idx));
+  document.getElementById('image-counter').textContent = `${idx + 1} / ${p.images.length}`;
+  currentImageIndex = idx;
+}
+
+function openItemById(id) {
+  const filtered = getFilteredProducts();
+  const idx = filtered.findIndex(p => p.id === id);
+  if (idx !== -1) openItem(idx);
+}
+
+// ============================================================
+// SWIPE LOGIC
+// ============================================================
+function attachSwipeEvents() {
+  const view = document.getElementById('expanded-view');
+  view.addEventListener('touchstart', handleStart, {passive:false});
+  view.addEventListener('touchmove', handleMove, {passive:false});
+  view.addEventListener('touchend', handleEnd);
+  view.addEventListener('mousedown', handleStart);
+  view.addEventListener('mousemove', handleMove);
+  view.addEventListener('mouseup', handleEnd);
+  view.addEventListener('mouseleave', handleEnd);
+}
+
+function handleStart(e) {
+  if (e.target.closest('.expanded-details') || e.target.closest('.image-dots') || e.target.closest('.image-counter')) return;
+  isDragging = true;
+  startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+}
+
+function handleMove(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+  currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+  const diff = currentX - startX;
+  const card = document.querySelector('.expanded-image.active');
+  if (!card) return;
+  const rotate = diff * 0.03;
+  card.style.transform = `translateX(${diff}px) rotate(${rotate}deg)`;
+
+  const yesStamp = document.getElementById('stamp-yes');
+  const noStamp = document.getElementById('stamp-no');
+  if (diff > 40) { yesStamp.style.opacity = Math.min((diff-40)/100, 1); noStamp.style.opacity = 0; }
+  else if (diff < -40) { noStamp.style.opacity = Math.min((Math.abs(diff)-40)/100, 1); yesStamp.style.opacity = 0; }
+  else { yesStamp.style.opacity = 0; noStamp.style.opacity = 0; }
+}
+
+function handleEnd(e) {
+  if (!isDragging) return;
+  isDragging = false;
+  const diff = currentX - startX;
+  const card = document.querySelector('.expanded-image.active');
+  if (card) card.style.transform = '';
+
+  if (diff > 100) swipeItem('yes');
+  else if (diff < -100) swipeItem('no');
+  else {
+    document.getElementById('stamp-yes').style.opacity = 0;
+    document.getElementById('stamp-no').style.opacity = 0;
+  }
+}
+
+function swipeItem(direction) {
+  const filtered = getFilteredProducts();
+  const p = filtered[currentGridIndex];
+  if (!p) return;
+
+  const card = document.querySelector('.expanded-image.active');
+  if (direction === 'yes') {
+    if (card) { card.style.transform = 'translateX(120%) rotate(20deg)'; card.style.opacity = '0'; }
+    document.getElementById('stamp-yes').style.opacity = 1;
+    setTimeout(() => showSeasonModal(p), 250);
+  } else {
+    if (card) { card.style.transform = 'translateX(-120%) rotate(-20deg)'; card.style.opacity = '0'; }
+    document.getElementById('stamp-no').style.opacity = 1;
+    setTimeout(() => { recordSwipe(p, 'no'); nextItem(); }, 300);
+  }
+}
+
+function nextItem() {
+  const filtered = getFilteredProducts();
+  currentGridIndex++;
+  if (currentGridIndex >= filtered.length) {
+    backToGrid();
+    return;
+  }
+  currentImageIndex = 0;
+  renderExpanded();
+}
+
+function recordSwipe(p, direction) {
+  history.push({ product: p, direction, index: currentGridIndex });
+  if (direction === 'yes') {
+    saved.push({ ...p, assignedSeasons: selectedSeasonsForSave });
+  } else {
+    rejected.push(p);
+  }
+  updateTasteProfile(p, direction);
+  updateShortlistBadge();
+}
+
+function updateTasteProfile(p, direction) {
+  if (direction !== 'yes') return;
+  tasteProfile.silhouettes[p.silhouette] = (tasteProfile.silhouettes[p.silhouette] || 0) + 1;
+  tasteProfile.colours[p.colourFamily] = (tasteProfile.colours[p.colourFamily] || 0) + 1;
+  tasteProfile.fabrics[p.fabricType] = (tasteProfile.fabrics[p.fabricType] || 0) + 1;
+  p.tags.forEach(t => { tasteProfile.ethicalTags[t] = (tasteProfile.ethicalTags[t] || 0) + 1; });
+  tasteProfile.priceRange.push(p.price);
+  tasteProfile.seasonVersatility.push(selectedSeasonsForSave.length);
+  saveToStorage();
+}
+
+// ============================================================
+// SEASON MODAL
+// ============================================================
+function showSeasonModal(p) {
+  selectedSeasonsForSave = [];
+  document.querySelectorAll('.season-opt').forEach(el => el.classList.remove('selected'));
+  document.getElementById('season-modal').classList.add('active');
+}
+
+function toggleSeason(season) {
+  const el = document.querySelector(`.season-opt[data-season="${season}"]`);
+  if (selectedSeasonsForSave.includes(season)) {
+    selectedSeasonsForSave = selectedSeasonsForSave.filter(s => s !== season);
+    el.classList.remove('selected');
+  } else {
+    selectedSeasonsForSave.push(season);
+    el.classList.add('selected');
+  }
+}
+
+function selectAllSeasons() {
+  const all = ['spring','summer','autumn','winter'];
+  if (selectedSeasonsForSave.length === 4) {
+    selectedSeasonsForSave = [];
+    document.querySelectorAll('.season-opt').forEach(el => el.classList.remove('selected'));
+  } else {
+    selectedSeasonsForSave = [...all];
+    document.querySelectorAll('.season-opt').forEach(el => el.classList.add('selected'));
+  }
+}
+
+function confirmSeasons() {
+  if (selectedSeasonsForSave.length === 0) {
+    selectedSeasonsForSave = ['spring','summer','autumn','winter'];
+  }
+  document.getElementById('season-modal').classList.remove('active');
+  const filtered = getFilteredProducts();
+  const p = filtered[currentGridIndex];
+  if (p) recordSwipe(p, 'yes');
+  nextItem();
+}
+
+// ============================================================
+// SHORTLIST
+// ============================================================
+function showShortlist() {
+  showScreen('shortlist');
+  renderShortlist('all');
+}
+
+function updateShortlistBadge() {
+  const badge = document.getElementById('shortlist-badge');
+  if (badge) badge.textContent = saved.length;
+}
+
+function filterShortlist(filter) {
+  document.querySelectorAll('.shortlist-filters .filter-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  renderShortlist(filter);
+}
+
+function renderShortlist(filter) {
+  const grid = document.getElementById('shortlist-grid');
+  let filtered = saved;
+
+  const cats = ['clothing','shoes','jewellery','accessories'];
+  const seasons = ['spring','summer','autumn','winter'];
+
+  if (cats.includes(filter)) {
+    filtered = saved.filter(s => s.category === filter);
+  } else if (seasons.includes(filter)) {
+    filtered = saved.filter(s => s.assignedSeasons && s.assignedSeasons.includes(filter));
+  }
+
+  // Sort by silhouette then colour
+  filtered.sort((a,b) => {
+    if (a.silhouette !== b.silhouette) return a.silhouette.localeCompare(b.silhouette);
+    return a.colourFamily.localeCompare(b.colourFamily);
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><span class="icon">✦</span><h2>No items yet</h2><p>Swipe right on items you love to build your shortlist.</p></div>';
+  } else {
+    grid.innerHTML = filtered.map((s, i) => {
+      const seasonsText = s.assignedSeasons ? s.assignedSeasons.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ') : 'All seasons';
+      return `
+        <div class="shortlist-item">
+          <img src="${s.images[0]}" alt="${s.name}">
+          <div class="shortlist-item-info">
+            <div class="shortlist-item-name">${s.name}</div>
+            <div class="shortlist-item-seasons">${seasonsText}</div>
+          </div>
+          <button class="shortlist-remove" onclick="removeFromShortlist(${saved.indexOf(s)})">×</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Summary
+  const totalCost = filtered.reduce((a,b) => a + b.cost, 0);
+  const totalRetail = filtered.reduce((a,b) => a + b.price, 0);
+  const totalProfit = filtered.reduce((a,b) => a + (b.price - b.cost), 0);
+  const avgMargin = filtered.length > 0 ? (totalProfit / totalRetail * 100).toFixed(0) : 0;
+
+  document.getElementById('shortlist-summary').innerHTML = `
+    <div class="summary-row"><span>Items</span><span>${filtered.length}</span></div>
+    <div class="summary-row"><span>Total Cost</span><span>£${totalCost.toFixed(2)}</span></div>
+    <div class="summary-row"><span>Projected Revenue</span><span>£${totalRetail.toFixed(2)}</span></div>
+    <div class="summary-row total"><span>Projected Profit</span><span>£${totalProfit.toFixed(2)} (${avgMargin}% margin)</span></div>
+  `;
+
+  // Export JSON
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    storeLocation: "London, UK",
+    targetMarket: "UK / EU",
+    curationMethod: "Ethical dropshipping — anti-fast fashion",
+    totalItems: saved.length,
+    estimatedInventoryCost: saved.reduce((a,b) => a + b.cost, 0),
+    projectedRevenue: saved.reduce((a,b) => a + b.price, 0),
+    projectedProfit: saved.reduce((a,b) => a + (b.price - b.cost), 0),
+    tasteProfile: tasteProfile,
+    items: saved.map(s => ({
+      name: s.name, category: s.category, subcategory: s.subcategory,
+      supplier: s.supplier, supplierLocation: s.location,
+      wholesaleCost: s.cost, retailPrice: s.price,
+      margin: s.price - s.cost,
+      marginPercent: ((s.price - s.cost) / s.price * 100).toFixed(1),
+      assignedSeasons: s.assignedSeasons,
+      ethicalTags: s.tags, silhouette: s.silhouette,
+      colourFamily: s.colourFamily, fabricType: s.fabricType,
+      description: s.description, imageUrl: s.images[0]
+    }))
+  };
+  document.getElementById('export-json').value = JSON.stringify(exportData, null, 2);
+}
+
+function removeFromShortlist(idx) {
+  saved.splice(idx, 1);
+  updateShortlistBadge();
+  renderShortlist('all');
+}
+
+function copyExport() {
+  const el = document.getElementById('export-json');
+  el.select();
+  document.execCommand('copy');
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent = '✅ Copied!';
+  setTimeout(() => btn.textContent = '📋 Copy Export JSON', 2000);
+}
+
+// ============================================================
+// OUTFIT BUILDER
+// ============================================================
+function showOutfitBuilder() {
+  showScreen('builder');
+  currentBuilderSeason = 'spring';
+  document.getElementById('builder-season-label').textContent = 'Spring';
+  renderBuilderItems();
+  renderMissingPieces();
+}
+
+function renderBuilderItems() {
+  const container = document.getElementById('builder-items');
+  const seasonItems = saved.filter(s => s.assignedSeasons && s.assignedSeasons.includes(currentBuilderSeason));
+  document.getElementById('builder-item-count').textContent = `${seasonItems.length} items`;
+
+  container.innerHTML = seasonItems.map(s => `
+    <div class="builder-item" draggable="true" ondragstart="dragStart(event, ${s.id})">
+      <img src="${s.images[0]}" alt="${s.name}">
+      <div class="builder-item-name">${s.name}</div>
+    </div>
+  `).join('');
+}
+
+function dragStart(e, id) {
+  e.dataTransfer.setData('itemId', id);
+}
+
+// Canvas drop
+const canvasInner = document.getElementById('canvas-inner');
+canvasInner.addEventListener('dragover', e => e.preventDefault());
+canvasInner.addEventListener('drop', e => {
+  e.preventDefault();
+  const id = parseInt(e.dataTransfer.getData('itemId'));
+  const item = saved.find(s => s.id === id);
+  if (!item) return;
+
+  const rect = canvasInner.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width * 100);
+  const y = ((e.clientY - rect.top) / rect.height * 100);
+
+  canvasItems.push({ ...item, x, y, width: 30 });
+  renderCanvas();
+  renderMissingPieces();
+});
+
+function renderCanvas() {
+  const canvas = document.getElementById('canvas-inner');
+  const placeholder = document.getElementById('canvas-placeholder');
+
+  if (canvasItems.length > 0) {
+    placeholder.style.display = 'none';
+    canvas.classList.add('has-items');
+  } else {
+    placeholder.style.display = 'flex';
+    canvas.classList.remove('has-items');
+  }
+
+  // Remove old canvas items
+  canvas.querySelectorAll('.canvas-item').forEach(el => el.remove());
+
+  canvasItems.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'canvas-item';
+    el.style.left = item.x + '%';
+    el.style.top = item.y + '%';
+    el.style.width = item.width + '%';
+    el.style.aspectRatio = '3/4';
+    el.style.zIndex = i + 2;
+    el.innerHTML = `
+      <img src="${item.images[0]}" alt="${item.name}">
+      <button class="remove-canvas" onclick="removeCanvasItem(${i})">×</button>
+    `;
+    canvas.appendChild(el);
+  });
+}
+
+function removeCanvasItem(idx) {
+  canvasItems.splice(idx, 1);
+  renderCanvas();
+  renderMissingPieces();
+}
+
+function clearCanvas() {
+  canvasItems = [];
+  renderCanvas();
+  renderMissingPieces();
+}
+
+function renderMissingPieces() {
+  const container = document.getElementById('missing-pieces');
+  const list = document.getElementById('missing-list');
+
+  const presentCats = new Set(canvasItems.map(c => c.category));
+  const allCats = ['clothing', 'shoes', 'jewellery', 'accessories'];
+  const missing = allCats.filter(c => !presentCats.has(c));
+
+  if (missing.length === 0 || canvasItems.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  const catLabels = { clothing: 'Clothing', shoes: 'Shoes', jewellery: 'Jewellery', accessories: 'Accessories' };
+
+  list.innerHTML = missing.map(cat => {
+    const catItems = saved.filter(s => s.category === cat && s.assignedSeasons && s.assignedSeasons.includes(currentBuilderSeason));
+    return `
+      <div class="missing-chip" onclick="jumpToCategory('${cat}')">
+        ${catLabels[cat]} needed <span class="add-icon">+</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function jumpToCategory(cat) {
+  currentCategory = cat;
+  showScreen('grid');
+  renderGrid();
+}
+
+function saveOutfit() {
+  if (canvasItems.length === 0) return;
+
+  const outfit = {
+    id: Date.now(),
+    season: currentBuilderSeason,
+    items: [...canvasItems],
+    createdAt: new Date().toISOString()
+  };
+  outfits.push(outfit);
+  saveToStorage();
+
+  alert(`Outfit saved for ${currentBuilderSeason}!`);
+  clearCanvas();
+}
+
+// ============================================================
+// LOOKBOOK
+// ============================================================
+function showLookbook() {
+  showScreen('lookbook');
+  const grid = document.getElementById('lookbook-grid');
+
+  if (outfits.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:span 2;"><span class="icon">✦</span><h2>No outfits yet</h2><p>Build your first outfit in the Outfit Builder.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = outfits.map(o => {
+    const heroImg = o.items[0]?.images[0] || '';
+    return `
+      <div class="lookbook-item">
+        <img src="${heroImg}" alt="Outfit">
+        <div class="lookbook-item-info">
+          <div class="lookbook-item-name">${o.season.charAt(0).toUpperCase() + o.season.slice(1)} Look</div>
+          <div class="lookbook-item-count">${o.items.length} pieces</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// STORAGE
+// ============================================================
+function saveToStorage() {
+  localStorage.setItem('ethicalEdit_saved', JSON.stringify(saved));
+  localStorage.setItem('ethicalEdit_taste', JSON.stringify(tasteProfile));
+  localStorage.setItem('ethicalEdit_outfits', JSON.stringify(outfits));
+}
+
+function loadFromStorage() {
+  const s = localStorage.getItem('ethicalEdit_saved');
+  const t = localStorage.getItem('ethicalEdit_taste');
+  const o = localStorage.getItem('ethicalEdit_outfits');
+  if (s) saved = JSON.parse(s);
+  if (t) tasteProfile = JSON.parse(t);
+  if (o) outfits = JSON.parse(o);
+  updateShortlistBadge();
+}
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (document.getElementById('screen-expanded').classList.contains('active')) {
+    if (e.key === 'ArrowRight') swipeItem('yes');
+    if (e.key === 'ArrowLeft') swipeItem('no');
+    if (e.key === 'Escape') backToGrid();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('season-modal').classList.remove('active');
+  }
+});
+
+document.getElementById('season-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('season-modal').classList.remove('active');
+});
+
+// ============================================================
+// INIT
+// ============================================================
+loadFromStorage();
+</script>
+</body>
+</html>
